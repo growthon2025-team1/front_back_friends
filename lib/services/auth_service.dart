@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'api_client.dart';
+import '../utils/auth_token.dart';
 
 class AuthService {
   static Future<Map<String, dynamic>> registerUser({
@@ -44,6 +45,7 @@ class AuthService {
       final response = await ApiClient.post(endpoint, body);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        AuthToken().accessToken = data['token'];
         return {'success': true, 'token': data['token']};
       } else {
         throw Exception('로그인 실패: ${response.statusCode}');
@@ -101,12 +103,14 @@ class AuthService {
     }
   }
 
-  static Future<Map<String, dynamic>> getUserInfo(String token) async {
+  static Future<Map<String, dynamic>> getUserInfo() async {
     const endpoint = '/auth/me';
 
+    final token = AuthToken().accessToken;
+    print(token);
     try {
       final response = await ApiClient.get(endpoint, headers: {
-        'Authorization': 'Bearer $token',
+        'Authorization': '$token',
       });
 
       if (response.statusCode == 200) {

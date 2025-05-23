@@ -5,12 +5,15 @@ import 'screens/register.dart';
 import 'screens/registered.dart';
 import 'screens/home.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'utils/auth_token.dart';
+
 
 void main() {
   KakaoSdk.init(
     nativeAppKey: '5ba08a3f7dfc40d9faf0daa0b9053d5a',
     javaScriptAppKey: 'a7e4980f47456ce077cd8f7945702814'
   );
+  AuthToken().accessToken = null;
   runApp(MyApp());
 }
 

@@ -90,7 +90,7 @@ class _SignupStartScreenState extends State<SignupStartScreen> {
       addLog('서버에 회원가입 요청 전송 중...');
       addLog('요청 URL: http://34.64.149.252:8080/auth/signup');
       addLog('요청 데이터: ${jsonEncode(requestBody)}');
-      
+
       try {
         // CORS 문제 해결를 위해 두 가지 방법 시도
         final serverUrl = Uri.parse('http://34.64.149.252:8080/auth/signup');
