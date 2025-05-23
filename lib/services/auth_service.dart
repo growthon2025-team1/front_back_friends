@@ -43,6 +43,8 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         AuthToken().accessToken = data['token'];
+        final userInfo = await getUserInfo();
+        AuthToken().userId = userInfo['id'];
         return {'success': true, 'token': data['token']};
       } else {
         throw Exception('로그인 실패: ${response.statusCode}');
