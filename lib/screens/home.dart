@@ -151,97 +151,136 @@ class HomeScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        'assets/images/home.png',
-                        width: scaleW(24),
-                        height: scaleH(24),
-                      ),
-                      SizedBox(height: scaleH(4)),
-                      const Text(
-                        '홈',
-                        style: TextStyle(
-                          fontFamily: 'Noto Sans KR',
-                          fontWeight: FontWeight.w300,
-                          fontSize: 9,
-                          color: Color(0xFFB4B4B4),
-                          height: 1.22,
-                        ),
-                      ),
-                    ],
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/map'),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          'assets/images/map.png',
-                          width: scaleW(24),
-                          height: scaleH(24),
-                        ),
-                        SizedBox(height: scaleH(4)),
-                        const Text(
-                          '지도',
-                          style: TextStyle(
-                            fontFamily: 'Noto Sans KR',
-                            fontWeight: FontWeight.w300,
-                            fontSize: 9,
-                            color: Color(0xFFB4B4B4),
-                            height: 1.22,
+                  InkWell(
+                    onTap: () {
+                      print('홈 버튼 클릭됨');
+                      Navigator.of(context).pushReplacementNamed('/home');
+                    },
+                    splashColor: Colors.grey.withOpacity(0.3),
+                    highlightColor: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: EdgeInsets.all(scaleW(4)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/images/home.png',
+                            width: scaleW(24),
+                            height: scaleH(24),
                           ),
-                        ),
-                      ],
+                          SizedBox(height: scaleH(4)),
+                          const Text(
+                            '홈',
+                            style: TextStyle(
+                              fontFamily: 'Noto Sans KR',
+                              fontWeight: FontWeight.w300,
+                              fontSize: 9,
+                              color: Color(0xFFB4B4B4),
+                              height: 1.22,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/chat'),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          'assets/images/chat.png',
-                          width: scaleW(24),
-                          height: scaleH(24),
-                        ),
-                        SizedBox(height: scaleH(4)),
-                        const Text(
-                          '채팅',
-                          style: TextStyle(
-                            fontFamily: 'Noto Sans KR',
-                            fontWeight: FontWeight.w300,
-                            fontSize: 9,
-                            color: Color(0xFFB4B4B4),
-                            height: 1.22,
+                  InkWell(
+                    onTap: () {
+                      print('맵 버튼 클릭됨');
+                      Navigator.of(context).pushNamed('/map');
+                    },
+                    splashColor: Colors.grey.withOpacity(0.3),
+                    highlightColor: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: EdgeInsets.all(scaleW(4)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/images/map.png',
+                            width: scaleW(24),
+                            height: scaleH(24),
                           ),
-                        ),
-                      ],
+                          SizedBox(height: scaleH(4)),
+                          const Text(
+                            '지도',
+                            style: TextStyle(
+                              fontFamily: 'Noto Sans KR',
+                              fontWeight: FontWeight.w300,
+                              fontSize: 9,
+                              color: Color(0xFFB4B4B4),
+                              height: 1.22,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/mypage'),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset(
-                          'assets/images/my.png',
-                          width: scaleW(24),
-                          height: scaleH(24),
-                        ),
-                        SizedBox(height: scaleH(4)),
-                        const Text(
-                          '마이',
-                          style: TextStyle(
-                            fontFamily: 'Noto Sans KR',
-                            fontWeight: FontWeight.w300,
-                            fontSize: 9,
-                            color: Color(0xFFB4B4B4),
-                            height: 1.22,
+                  InkWell(
+                    onTap: () {
+                      print('채팅 버튼 클릭됨');
+                      Navigator.of(context).pushNamed('/chat');
+                    },
+                    splashColor: Colors.grey.withOpacity(0.3),
+                    highlightColor: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: EdgeInsets.all(scaleW(4)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/images/chat.png',
+                            width: scaleW(24),
+                            height: scaleH(24),
                           ),
-                        ),
-                      ],
+                          SizedBox(height: scaleH(4)),
+                          const Text(
+                            '채팅',
+                            style: TextStyle(
+                              fontFamily: 'Noto Sans KR',
+                              fontWeight: FontWeight.w300,
+                              fontSize: 9,
+                              color: Color(0xFFB4B4B4),
+                              height: 1.22,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      print('마이 버튼 클릭됨');
+                      Navigator.of(context).pushNamed('/mypage');
+                    },
+                    splashColor: Colors.grey.withOpacity(0.3),
+                    highlightColor: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: EdgeInsets.all(scaleW(4)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/images/my.png',
+                            width: scaleW(24),
+                            height: scaleH(24),
+                          ),
+                          SizedBox(height: scaleH(4)),
+                          const Text(
+                            '마이',
+                            style: TextStyle(
+                              fontFamily: 'Noto Sans KR',
+                              fontWeight: FontWeight.w300,
+                              fontSize: 9,
+                              color: Color(0xFFB4B4B4),
+                              height: 1.22,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

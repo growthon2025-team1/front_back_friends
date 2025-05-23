@@ -4,6 +4,7 @@ import 'screens/login.dart';
 import 'screens/register.dart';
 import 'screens/registered.dart';
 import 'screens/home.dart';
+import 'screens/map.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 
 void main() {
@@ -30,6 +31,7 @@ class MyApp extends StatelessWidget {
         '/register': (context) => SignupStartScreen(),
         '/registered': (context) => SignupCompleteScreen(),
         '/home': (context) => HomeScreen(),
+        '/map': (context) => MapScreen(),
       },
     );
   }
