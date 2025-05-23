@@ -13,13 +13,18 @@ class ChatRoomScreen extends StatefulWidget {
 }
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
+  final ScrollController _scrollController = ScrollController();
   final TextEditingController _controller = TextEditingController();
+
   List<Map<String, dynamic>> messages = [];
   bool _canSend = false;
 
   @override
   void initState() {
     super.initState();
+    final myUserId = AuthToken().userId;
+    print('✅ 현재 로그인한 사용자 ID: $myUserId');
+
     _controller.addListener(() {
       setState(() {
         _canSend = _controller.text.trim().isNotEmpty;
@@ -31,6 +36,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       onMessageReceived: (msg) {
         setState(() {
           messages.add(msg);
+          print('📩 새 메시지 도착: ${msg['content']} / 보낸 사람: ${msg['senderId']}');
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
         });
       },
     );
@@ -39,17 +54,19 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Future<void> fetchOldMessages() async {
     final token = AuthToken().accessToken;
     final url = Uri.parse(
-      'http://http://34.64.149.252:8080//api/chatrooms/${widget.chatRoomId}/messages',
+      'http://34.64.149.252:8080/api/chatrooms/${widget.chatRoomId}/messages',
     );
-    final response = await http.get(
-      url,
-      headers: {'Authorization': 'Bearer $token'},
-    );
+    final response = await http.get(url, headers: {'Authorization': '$token'});
 
     if (response.statusCode == 200) {
       final List data = jsonDecode(response.body);
       setState(() {
         messages = data.cast<Map<String, dynamic>>();
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
       });
     } else {
       print('❌ 과거 메시지 로드 실패: ${response.statusCode}');
@@ -118,11 +135,15 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   }
 
   Widget _buildMessageList() {
+    final myUserId = AuthToken().userId;
+
     return ListView.builder(
+      controller: _scrollController,
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final msg = messages[index];
-        final isMine = msg['senderName'] == '나';
+        final senderId = msg['senderId'];
+        final isMine = senderId == myUserId;
         return Row(
           mainAxisAlignment:
               isMine ? MainAxisAlignment.end : MainAxisAlignment.start,

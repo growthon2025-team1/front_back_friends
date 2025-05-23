@@ -8,4 +8,5 @@ class AuthToken {
   AuthToken._internal();
 
   String? accessToken;
+  int? userId;
 }
