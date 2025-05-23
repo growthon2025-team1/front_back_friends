@@ -4,6 +4,7 @@ import 'screens/login.dart';
 import 'screens/register.dart';
 import 'screens/registered.dart';
 import 'screens/home.dart';
+import 'screens/home_ok.dart'; 
 import 'screens/RegisterFoodScreen.dart';
 import 'screens/RegisterDetailScreen.dart';
 import 'screens/RegisterCategoryScreen.dart';
@@ -37,8 +38,8 @@ class MyApp extends StatelessWidget {
         '/register': (context) => SignupStartScreen(),
         '/registered': (context) => SignupCompleteScreen(),
         '/home': (context) => HomeScreen(),
-        '/chatlist': (context) => const ChatListScreen(), // ✅ 목록만 유지
-        // '/chatroom': 제거됨, 파라미터 전달이 필요하므로 push에서 직접 처리
+        '/home_ok': (context) => const HomeOkScreen(), 
+        '/chatlist': (context) => const ChatListScreen(), 
         '/registerFood': (context) => const RegisterFoodScreen(),
         '/registerDetail': (context) => const RegisterDetailScreen(),
         '/registerDetail2': (context) => const RegisterDetailScreen2(),
@@ -47,4 +48,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

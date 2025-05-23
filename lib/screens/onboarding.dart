@@ -19,7 +19,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     final onboardingData = [
       {
-        'textImage': 'assets/images/text1.png',
+        'textImage': {
+          'src': 'assets/images/text1.png',
+          'top': h * 0.18,
+          'left': (w - w * 0.75) / 2,
+          'w': w * 0.75,
+          'h': h * 0.07,
+        },
         'icons': [
           {'src': 'assets/images/bread.png', 'top': h * 0.36, 'left': w * -0.1, 'w': w * 0.2, 'h': h * 0.08},
           {'src': 'assets/images/icecream.png', 'top': h * 0.35, 'left': w * 0.32, 'w': w * 0.16, 'h': h * 0.13},
@@ -39,16 +45,40 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ]
       },
       {
-        'textImage': 'assets/images/text2.png',
+        'textImage': {
+          'src': 'assets/images/text2.png',
+          'top': h * 0.18,
+          'left': (w - w * 0.75) / 2,
+          'w': w * 0.75,
+          'h': h * 0.07,
+        },
         'icons': [
-          {'src': 'assets/images/Asset12.png', 'top': h * 0.35, 'center': true, 'w': w * 0.7, 'h': w * 0.7}
+          {
+            'src': 'assets/images/Asset12.png',
+            'top': h * 0.32,
+            'center': true,
+            'w': w * 0.7,
+            'h': w * 0.7
+          }
         ],
         'blurs': []
       },
       {
-        'textImage': 'assets/images/text3.png',
+        'textImage': {
+          'src': 'assets/images/text3.png',
+          'top': h * 0.18,
+          'left': (w - w * 0.75) / 2,
+          'w': w * 0.75,
+          'h': h * 0.07,
+        },
         'icons': [
-          {'src': 'assets/images/Asset19.png', 'top': h * 0.38, 'center': true, 'w': w * 0.65, 'h': w * 0.65}
+          {
+            'src': 'assets/images/Asset19.png',
+            'top': h * 0.34,
+            'center': true,
+            'w': w * 0.65,
+            'h': w * 0.65
+          }
         ],
         'blurs': []
       },
@@ -73,22 +103,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     height: w * 1.2,
                     child: Image.asset('assets/images/Ellipse32.png', fit: BoxFit.contain),
                   ),
-                  if (index == 0) ...[
-                    Positioned(
-                      top: h * 0.27,
-                      left: w * -0.3,
-                      width: w * 0.55,
-                      height: w * 0.55,
-                      child: Image.asset('assets/images/Rectangle361.png'),
-                    ),
-                    Positioned(
-                      top: h * 0.43,
-                      left: w - 0.28,
-                      width: w * 0.55,
-                      height: w * 0.55,
-                      child: Image.asset('assets/images/Rectangle360.png'),
-                    ),
-                  ],
                   for (final blur in page['blurs'] as List)
                     Positioned(
                       top: blur['top'],
@@ -106,12 +120,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: Image.asset(icon['src'], fit: BoxFit.contain),
                     ),
                   Positioned(
-                    top: h * 0.15,
-                    left: (w - w * 0.75) / 2,
-                    width: w * 0.75,
-                    height: h * 0.06,
-                    child: Image.asset(page['textImage'] as String),
+                    top: (page['textImage'] as Map)['top'],
+                    left: (page['textImage'] as Map)['left'],
+                    width: (page['textImage'] as Map)['w'],
+                    height: (page['textImage'] as Map)['h'],
+                    child: Image.asset((page['textImage'] as Map)['src'] as String, fit: BoxFit.contain),
                   ),
+                  if (index == 0) ...[
+                    Positioned(
+                      top: h * 0.27,
+                      left: w * -0.35,
+                      width: w * 0.90, 
+                      height: w * 0.90, 
+                      child: Image.asset('assets/images/Rectangle361.png', fit: BoxFit.contain),
+                    ),
+                    Positioned(
+                      top: h * 0.43,
+                      left: w * 0.45,
+                      width: w * 0.90, 
+                      height: w * 0.90, 
+                      child: Image.asset('assets/images/Rectangle360.png', fit: BoxFit.contain),
+                    ),
+                  ],
                 ],
               );
             },
@@ -176,4 +206,4 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
-} 
+}
