@@ -7,6 +7,10 @@ import 'screens/home.dart';
 import 'screens/map.dart';
 import 'screens/chat.dart';
 import 'screens/mypage.dart';
+import 'screens/RegisterFoodScreen.dart';
+import 'screens/RegisterDetailScreen.dart';
+import 'screens/RegisterCategoryScreen.dart';
+import 'screens/RegisterDetailScreen2.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'utils/auth_token.dart';
 
@@ -39,6 +43,10 @@ class MyApp extends StatelessWidget {
         '/map': (context) => MapScreen(),
         '/mypage': (context) => MyPageScreen(),
         '/chat': (context) => ChatScreen(),
+        '/registerFood': (context) => const RegisterFoodScreen(),
+        '/registerDetail': (context) => const RegisterDetailScreen(),
+        '/registerDetail2': (context) => const RegisterDetailScreen2(),
+        '/registerCategory': (context) => const RegisterCategoryScreen(),
       },
     );
   }
