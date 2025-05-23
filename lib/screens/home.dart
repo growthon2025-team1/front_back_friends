@@ -1,8 +1,33 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String? userName;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserName();
+  }
+
+  Future<void> fetchUserName() async {
+    try {
+      final fetchedName = await AuthService.getUserInfo();
+
+      setState(() {
+        userName = fetchedName['nickname'];
+      });
+    } catch (e) {
+      print('이름 불러오기 실패: $e');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -22,8 +47,8 @@ class HomeScreen extends StatelessWidget {
             child: SizedBox(
               width: scaleW(300),
               height: scaleH(70),
-              child: const Text(
-                '안녕하세요, 마루님\n오늘의 냉장고에는 무엇이 있나요?',
+              child: Text(
+                '안녕하세요, ${userName ?? '...'}님\n오늘의 냉장고에는 무엇이 있나요?',
                 style: TextStyle(
                   fontFamily: 'Noto Sans KR',
                   fontWeight: FontWeight.w700,
