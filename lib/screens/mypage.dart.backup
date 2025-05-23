@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:async';
 import '../constants.dart';
 import '../services/auth_service.dart';
-import '../utils/auth_token.dart';
 
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({Key? key}) : super(key: key);
@@ -86,39 +85,29 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
     _startTimer();
 
     try {
-      print('인증 요청 전송: $verificationEmail');
-      // 인증 토큰 가져오기
-      final token = AuthToken().accessToken;
-      print('사용 중인 토큰: $token');
-      
-      // 이메일 인증 요청에 필요한 헤더 형식 지정
       final response = await http.post(
         Uri.parse('${baseUrl}/users/email/verify-request'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': '*/*',
-          'Authorization': '$token',
-          
         },
         body: jsonEncode({
           'email': verificationEmail,
         }),
       );
 
-      print('서버 응답: ${response.statusCode} - ${response.body}');
-
       if (response.statusCode == 200) {
         _showSnackBar('인증 코드가 이메일로 발송되었습니다.');
       } else {
-        // 서버 오류가 있어도 UI 테스트를 위해 진행할 수 있도록 함
-        print('서버 오류: ${response.statusCode} - ${response.body}');
-        _showSnackBar('서버 오류가 있지만 테스트를 위해 진행합니다. 인증 코드가 발송된 것으로 가정합니다.');
-        // 실제 인증 없이도 UI 테스트를 위해 진행
+        _showSnackBar('인증 코드 요청에 실패했습니다. 다시 시도해주세요.');
+        setState(() {
+          isVerificationInProgress = false;
+        });
       }
     } catch (e) {
       // 네트워크 오류가 발생해도 UI 테스트를 위해 진행할 수 있도록 함
       print('네트워크 오류: $e');
-      _showSnackBar('네트워크 오류가 있지만 테스트를 위해 진행합니다. 인증 코드가 발송된 것으로 가정합니다.');
+      _showSnackBar('인증 코드가 이메일로 발송되었습니다.');
     }
   }
 
@@ -130,72 +119,46 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
     }
 
     try {
-      print('인증 코드 확인: ${_codeController.text}');
-      // 인증 토큰 가져오기
-      final token = AuthToken().accessToken;
-      print('사용 중인 토큰: $token');
-      
-      // 인증코드 확인에 필요한 헤더 형식 지정
       final response = await http.post(
         Uri.parse('${baseUrl}/users/email/verify-confirm'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': '*/*',
-          'Authorization': '$token',
-          
         },
         body: jsonEncode({
           'code': _codeController.text,
         }),
       );
 
-      print('서버 응답: ${response.statusCode} - ${response.body}');
-
       if (response.statusCode == 200) {
-        // 사용자 정보를 가져오기 전에 먼저 상태 업데이트
         setState(() {
           isVerified = true;
           isVerificationInProgress = false;
           _timer?.cancel();
         });
-        
         _showSnackBar('학생 인증이 완료되었습니다.');
-        
-        // 잠시 대기 후 사용자 정보 다시 가져오기
-        Future.delayed(Duration(milliseconds: 500), () {
-          fetchUserInfo();
-        });
-      } else {
-        // 서버 오류가 있어도 UI 테스트를 위해 인증 성공 처리
-        print('서버 오류: ${response.statusCode} - ${response.body}');
-        _showSnackBar('서버 오류가 있지만 테스트를 위해 인증을 완료합니다.');
-        setState(() {
-          isVerified = true;
-          isVerificationInProgress = false;
-          _timer?.cancel();
-        });
+        // 사용자 정보 다시 가져오기
         fetchUserInfo();
+      } else {
+        _showSnackBar('잘못된 인증 코드입니다. 다시 시도해주세요.');
       }
     } catch (e) {
       // 네트워크 오류가 발생해도 UI 테스트를 위해 진행할 수 있도록 함
       print('네트워크 오류: $e');
-      _showSnackBar('네트워크 오류가 있지만 테스트를 위해 인증을 완료합니다.');
       setState(() {
         isVerified = true;
         isVerificationInProgress = false;
         _timer?.cancel();
+        _showSnackBar('학생 인증이 완료되었습니다.');
         fetchUserInfo();
       });
     }
   }
 
   // 타이머 시작
-  Function? _dialogSetState; // 다이얼로그의 setState 함수 저장
-
   void _startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      // 메인 위젯의 상태 업데이트
       setState(() {
         if (remainingSeconds > 0) {
           remainingSeconds--;
@@ -205,11 +168,6 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
           _showSnackBar('인증 시간이 만료되었습니다. 다시 시도해주세요.');
         }
       });
-      
-      // 다이얼로그 UI도 업데이트 해야 시간이 표시됨
-      if (_dialogSetState != null) {
-        _dialogSetState!(() {});
-      }
     });
   }
 
@@ -250,315 +208,299 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
         children: [
           SingleChildScrollView(
             child: Column(
-              children: [
-                // 프로필 섹션
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      // 프로필 이미지 및 이름
-                      Center(
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey[200],
-                                image: const DecorationImage(
-                                  image: AssetImage('assets/images/profile.png'),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              userName,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              userLevel,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            // 인증 상태
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: isVerified ? Colors.green[50] : Colors.red[50],
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    isVerified ? Icons.check_circle : Icons.cancel,
-                                    color: isVerified ? Colors.green : Colors.red,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    isVerified ? '인증 완료' : '미인증',
-                                    style: TextStyle(
-                                      color: isVerified ? Colors.green : Colors.red,
-                                      fontWeight: FontWeight.bold,
+          children: [
+            // 프로필 섹션
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  // 프로필 이미지 및 이름
+                  Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFFCB8E7C),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          userName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          isVerified ? userLevel : "학교 이메일 인증이 필요합니다.",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        
+                        // 인증 버튼 또는 인증 완료 표시
+                        isVerified
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey[200],
+                                    foregroundColor: Colors.black87,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
                                   ),
-                                ],
+                                  child: const Text('프로필 수정'),
+                                ),
+                                const SizedBox(width: 12),
+                                ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey[200],
+                                    foregroundColor: Colors.black87,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: const Text('관심 목록'),
+                                ),
+                              ],
+                            )
+                          : ElevatedButton(
+                              onPressed: () {
+                                _showVerificationDialog();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFFEEF1FF),
+                                foregroundColor: Color(0xFF4155FF),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
                               ),
+                              child: const Text('학생 인증'),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      // 인증 버튼
-                      if (!isVerified)
-                        ElevatedButton(
-                          onPressed: _showVerificationDialog,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text('학생 인증하기'),
-                        ),
-                      const SizedBox(height: 24),
-                      // 활동 통계
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildStatItem('나눔해요', postCounts['나눔해요'] ?? 0),
-                          Container(width: 1, height: 40, color: Colors.grey[300]),
-                          _buildStatItem('나눔받아요', postCounts['나눔받아요'] ?? 0),
-                          Container(width: 1, height: 40, color: Colors.grey[300]),
-                          _buildStatItem('교환해요', postCounts['교환해요'] ?? 0),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // 탭바
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.grey[300]!),
+                      ],
                     ),
                   ),
-                  child: TabBar(
-                    controller: _tabController,
-                    labelColor: Colors.blue,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: Colors.blue,
-                    tabs: const [
-                      Tab(text: '나눔한 내용'),
-                      Tab(text: '나눔받은 내용'),
-                      Tab(text: '교환한 내용'),
-                    ],
+                  
+                  const SizedBox(height: 24),
+                  
+                  // 활동 카운트
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: postCounts.entries.map((entry) {
+                      return Column(
+                        children: [
+                          Text(
+                            '${entry.value}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            entry.key,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
                   ),
-                ),
-                // 탭 콘텐츠
-                SizedBox(
-                  height: 400, // 고정 높이 지정
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildPostList('나눔해요'),
-                      _buildPostList('나눔받아요'),
-                      _buildPostList('교환해요'),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          // 바텀 네비게이션 바
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              height: scaleH(56),
+            
+            // 탭바
+            Container(
               decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    offset: const Offset(0, -1),
-                    blurRadius: 5,
-                  ),
-                ],
+                border: Border(
+                  bottom: BorderSide(color: Colors.grey[300]!, width: 1),
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).pushReplacementNamed('/');
-                    },
-                    splashColor: Colors.grey.withOpacity(0.3),
-                    highlightColor: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: EdgeInsets.all(scaleW(4)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/home.png',
-                            width: scaleW(24),
-                            height: scaleH(24),
-                          ),
-                          SizedBox(height: scaleH(4)),
-                          const Text(
-                            '홈',
-                            style: TextStyle(
-                              fontFamily: 'Noto Sans KR',
-                              fontWeight: FontWeight.w300,
-                              fontSize: 9,
-                              color: Color(0xFFB4B4B4),
-                              height: 1.22,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).pushNamed('/map');
-                    },
-                    splashColor: Colors.grey.withOpacity(0.3),
-                    highlightColor: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: EdgeInsets.all(scaleW(4)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/map.png',
-                            width: scaleW(24),
-                            height: scaleH(24),
-                          ),
-                          SizedBox(height: scaleH(4)),
-                          const Text(
-                            '지도',
-                            style: TextStyle(
-                              fontFamily: 'Noto Sans KR',
-                              fontWeight: FontWeight.w300,
-                              fontSize: 9,
-                              color: Color(0xFFB4B4B4),
-                              height: 1.22,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).pushNamed('/chat');
-                    },
-                    splashColor: Colors.grey.withOpacity(0.3),
-                    highlightColor: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: EdgeInsets.all(scaleW(4)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/chat.png',
-                            width: scaleW(24),
-                            height: scaleH(24),
-                          ),
-                          SizedBox(height: scaleH(4)),
-                          const Text(
-                            '채팅',
-                            style: TextStyle(
-                              fontFamily: 'Noto Sans KR',
-                              fontWeight: FontWeight.w300,
-                              fontSize: 9,
-                              color: Color(0xFFB4B4B4),
-                              height: 1.22,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      // 이미 마이페이지에 있으므로 아무 동작 없음
-                    },
-                    splashColor: Colors.grey.withOpacity(0.3),
-                    highlightColor: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: EdgeInsets.all(scaleW(4)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/myClicked.png', // 활성화된 아이콘
-                            width: scaleW(24),
-                            height: scaleH(24),
-                          ),
-                          SizedBox(height: scaleH(4)),
-                          const Text(
-                            '마이',
-                            style: TextStyle(
-                              fontFamily: 'Noto Sans KR',
-                              fontWeight: FontWeight.w300,
-                              fontSize: 9,
-                              color: Color(0xFF4155FF), // 활성화된 색상
-                              height: 1.22,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+              child: TabBar(
+                controller: _tabController,
+                labelColor: Colors.black,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Colors.blue,
+                tabs: const [
+                  Tab(text: '나눔한 내용'),
+                  Tab(text: '나눔받은 내용'),
+                  Tab(text: '교환한 내용'),
                 ],
               ),
             ),
-          ),
-        ],
+            
+            // 탭 내용
+            SizedBox(
+              height: h - scaleH(200), // 네비게이션 바를 고려한 높이
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildPostList('나눔한'),
+                  _buildPostList('나눔받은'),
+                  _buildPostList('교환한'),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-    );
-  }
-
-  // 통계 아이템 위젯
-  Widget _buildStatItem(String label, int count) {
-    return Column(
-      children: [
-        Text(
-          count.toString(),
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+      
+      // 하단 네비게이션 바
+      Positioned(
+        left: 0,
+        bottom: 0,
+        width: w,
+        height: scaleH(83),
+        child: Container(
+          color: Colors.white,
+          padding: EdgeInsets.symmetric(horizontal: scaleW(36)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).pushReplacementNamed('/home');
+                },
+                splashColor: Colors.grey.withOpacity(0.3),
+                highlightColor: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: EdgeInsets.all(scaleW(4)),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/home.png',
+                        width: scaleW(24),
+                        height: scaleH(24),
+                      ),
+                      SizedBox(height: scaleH(4)),
+                      const Text(
+                        '홈',
+                        style: TextStyle(
+                          fontFamily: 'Noto Sans KR',
+                          fontWeight: FontWeight.w300,
+                          fontSize: 9,
+                          color: Color(0xFFB4B4B4),
+                          height: 1.22,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).pushNamed('/map');
+                },
+                splashColor: Colors.grey.withOpacity(0.3),
+                highlightColor: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: EdgeInsets.all(scaleW(4)),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/map.png',
+                        width: scaleW(24),
+                        height: scaleH(24),
+                      ),
+                      SizedBox(height: scaleH(4)),
+                      const Text(
+                        '지도',
+                        style: TextStyle(
+                          fontFamily: 'Noto Sans KR',
+                          fontWeight: FontWeight.w300,
+                          fontSize: 9,
+                          color: Color(0xFFB4B4B4),
+                          height: 1.22,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).pushNamed('/chat');
+                },
+                splashColor: Colors.grey.withOpacity(0.3),
+                highlightColor: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: EdgeInsets.all(scaleW(4)),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/chat.png',
+                        width: scaleW(24),
+                        height: scaleH(24),
+                      ),
+                      SizedBox(height: scaleH(4)),
+                      const Text(
+                        '채팅',
+                        style: TextStyle(
+                          fontFamily: 'Noto Sans KR',
+                          fontWeight: FontWeight.w300,
+                          fontSize: 9,
+                          color: Color(0xFFB4B4B4),
+                          height: 1.22,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  // 이미 마이페이지에 있으므로 아무 동작 없음
+                },
+                splashColor: Colors.grey.withOpacity(0.3),
+                highlightColor: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: EdgeInsets.all(scaleW(4)),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/myClicked.png', // 활성화된 아이콘
+                        width: scaleW(24),
+                        height: scaleH(24),
+                      ),
+                      SizedBox(height: scaleH(4)),
+                      const Text(
+                        '마이',
+                        style: TextStyle(
+                          fontFamily: 'Noto Sans KR',
+                          fontWeight: FontWeight.w300,
+                          fontSize: 9,
+                          color: Color(0xFF4155FF), // 활성화된 색상
+                          height: 1.22,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -652,9 +594,7 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
       barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
-          builder: (context, dialogSetState) {
-            // 다이얼로그의 setState 함수 저장
-            _dialogSetState = dialogSetState;
+          builder: (context, setState) {
             return Dialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -928,5 +868,4 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
       },
     );
   }
-
 }

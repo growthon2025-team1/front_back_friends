@@ -107,11 +107,15 @@ class AuthService {
     const endpoint = '/auth/me';
 
     final token = AuthToken().accessToken;
-    print(token);
+    print('getUserInfo 토큰: $token');
     try {
+      // 인증 헤더 형식 수정 (Bearer 제거)
       final response = await ApiClient.get(endpoint, headers: {
         'Authorization': '$token',
       });
+      
+      print('getUserInfo 응답 상태: ${response.statusCode}');
+      print('getUserInfo 응답 내용: ${response.body}');
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
