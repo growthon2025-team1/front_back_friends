@@ -21,18 +21,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       {
         'textImage': 'assets/images/text1.png',
         'icons': [
-          {'src': 'assets/images/bread.png', 'top': h * 0.35, 'left': w * -0.1, 'w': w * 0.2, 'h': h * 0.08},
-          {'src': 'assets/images/icecream.png', 'top': h * 0.35, 'left': w * 0.3, 'w': w * 0.16, 'h': h * 0.13},
-          {'src': 'assets/images/sweetpotato.png', 'top': h * 0.38, 'left': w * 0.65, 'w': w * 0.16, 'h': h * 0.08},
-          {'src': 'assets/images/ramen.png', 'top': h * 0.57, 'left': w * 0.12, 'w': w * 0.25, 'h': h * 0.07},
-          {'src': 'assets/images/pumpkin.png', 'top': h * 0.55, 'left': w * 0.55, 'w': w * 0.18, 'h': h * 0.09},
-          {'src': 'assets/images/apple.png', 'top': h * 0.54, 'left': w * 0.82, 'w': w * 0.2, 'h': w * 0.2},
+          {'src': 'assets/images/bread.png', 'top': h * 0.36, 'left': w * -0.1, 'w': w * 0.2, 'h': h * 0.08},
+          {'src': 'assets/images/icecream.png', 'top': h * 0.35, 'left': w * 0.32, 'w': w * 0.16, 'h': h * 0.13},
+          {'src': 'assets/images/sweetpotato.png', 'top': h * 0.38, 'left': w * 0.72, 'w': w * 0.16, 'h': h * 0.08},
+          {'src': 'assets/images/ramen.png', 'top': h * 0.60, 'left': w * 0.10, 'w': w * 0.25, 'h': h * 0.07},
+          {'src': 'assets/images/pumpkin.png', 'top': h * 0.58, 'left': w * 0.52, 'w': w * 0.18, 'h': h * 0.09},
+          {'src': 'assets/images/apple.png', 'top': h * 0.57, 'left': w * 0.87, 'w': w * 0.22, 'h': w * 0.22},
         ],
         'blurs': [
           {'src': 'assets/images/blur1.png', 'top': h * 0.33, 'left': w * -0.1},
           {'src': 'assets/images/blur2.png', 'top': h * 0.33, 'left': w * 0.25},
-          {'src': 'assets/images/blur3.png', 'top': h * 0.33, 'left': w * 0.6},
-          {'src': 'assets/images/blur4.png', 'top': h * 0.3, 'left': w * -0.18},
+          {'src': 'assets/images/blur3.png', 'top': h * 0.33, 'left': w * 0.65},
+          {'src': 'assets/images/blur4.png', 'top': h * 0.3, 'left': w * -0.8},
           {'src': 'assets/images/blur5.png', 'top': h * 0.55, 'left': w * 0.05},
           {'src': 'assets/images/blur6.png', 'top': h * 0.55, 'left': w * 0.45},
           {'src': 'assets/images/blur7.png', 'top': h * 0.55, 'left': w * 0.75},
@@ -77,15 +77,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Positioned(
                       top: h * 0.27,
                       left: w * -0.3,
-                      width: w * 0.75,
-                      height: w * 0.75,
+                      width: w * 0.55,
+                      height: w * 0.55,
                       child: Image.asset('assets/images/Rectangle361.png'),
                     ),
                     Positioned(
                       top: h * 0.43,
-                      left: w - w * 0.5,
-                      width: w * 0.75,
-                      height: w * 0.75,
+                      left: w - 0.28,
+                      width: w * 0.55,
+                      height: w * 0.55,
                       child: Image.asset('assets/images/Rectangle360.png'),
                     ),
                   ],
@@ -118,8 +118,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
 
           Positioned(
-            bottom: h * 0.14,
-            left: (w - 50) / 2,
+            bottom: h * 0.17,
+            left: (w - 75) / 2,
             child: Row(
               children: List.generate(onboardingData.length, (index) {
                 final isActive = index == _currentIndex;
@@ -166,7 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           if (_currentIndex < 2)
             Positioned(
               bottom: h * 0.02,
-              left: (w - 60) / 2,
+              left: (w - 40) / 2,
               child: GestureDetector(
                 onTap: () => _pageController.jumpToPage(2),
                 child: const Text("건너뛰기", style: TextStyle(color: Color(0xFF6B6B6B), fontSize: 12)),
@@ -176,4 +176,4 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
-}
+} 

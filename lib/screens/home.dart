@@ -15,7 +15,6 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-         
           Positioned(
             left: scaleW(22),
             top: scaleH(82),
@@ -66,7 +65,10 @@ class HomeScreen extends StatelessWidget {
             top: scaleH(335),
             width: scaleW(346),
             height: scaleH(46),
-            child: Image.asset('assets/images/CTA1.png', fit: BoxFit.contain),
+            child: GestureDetector(
+              onTap: () => Navigator.pushNamed(context, '/registerFood'),
+              child: Image.asset('assets/images/CTA1.png', fit: BoxFit.contain),
+            ),
           ),
 
           Positioned(
@@ -197,7 +199,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/chat'),
+                    onTap: () => Navigator.pushNamed(context, '/chatlist'),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
