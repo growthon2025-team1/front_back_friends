@@ -42,10 +42,8 @@ class AuthService {
       final response = await ApiClient.post(endpoint, body);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        AuthToken().accessToken = data['token'];
-
-        final userInfo = await getUserInfo();
-        AuthToken().userId = userInfo['id'];
+        AuthToken().accessToken = 'Bearer ${data['token']}'; // 여기서 붙이기
+        AuthToken().userId = data['userId'];
         return {'success': true, 'token': data['token']};
       } else {
         throw Exception('로그인 실패: ${response.statusCode}');
@@ -62,15 +60,21 @@ class AuthService {
       'kakaoId': kakaoUser.id.toString(),
       'email': kakaoUser.kakaoAccount?.email ?? '',
       'nickname': kakaoUser.kakaoAccount?.profile?.nickname ?? '',
-      'profileImage': kakaoUser.kakaoAccount?.profile?.profileImageUrl ?? '',
     };
 
     try {
       final response = await ApiClient.post(endpoint, body);
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+
+      // ✅ 응답 로그 확인
+      final data = jsonDecode(response.body);
+      dev.log('🔁 [카카오 로그인] 응답 데이터: $data');
+
+      if (response.statusCode == 200 && data.containsKey('token')) {
+        AuthToken().accessToken = data['token'];
+        AuthToken().userId = data['userId'];
+        return {'success': true, 'token': data['token']};
       } else {
-        throw Exception('카카오 로그인 실패: ${response.statusCode}');
+        throw Exception('카카오 로그인 실패: 응답 형식 오류');
       }
     } catch (e) {
       dev.log('카카오 로그인 오류: $e');

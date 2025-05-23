@@ -4,6 +4,7 @@ import 'package:kakao_flutter_sdk_auth/kakao_flutter_sdk_auth.dart';
 import '../services/auth_service.dart';
 import 'dart:convert';
 import 'dart:developer' as dev;
+import '../utils/auth_token.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -16,13 +17,13 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isButtonEnabled = false;
   bool _isLoading = false;
   bool _isWeb = false; // 웹 환경 여부
-  
+
   final FocusNode _idFocus = FocusNode();
   final FocusNode _pwFocus = FocusNode();
-  
+
   bool _showIdError = false;
   bool _showPwError = false;
-  
+
   // 로그 메시지 출력 함수
   void _log(String message) {
     dev.log(message);
@@ -43,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final passwordRegExp = RegExp(r'^(?=.*[!@#\$&*~])[A-Za-z\d!@#\$&*~]{8,}$');
 
     setState(() {
-      _isButtonEnabled = id.isNotEmpty && pw.isNotEmpty; 
+      _isButtonEnabled = id.isNotEmpty && pw.isNotEmpty;
       // 개발 중에는 비밀번호 정규식 검사를 일시적으로 완화함
       // _isButtonEnabled = id.isNotEmpty && passwordRegExp.hasMatch(pw);
     });
@@ -54,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _idController.addListener(_checkFields);
     _pwController.addListener(_checkFields);
-    
+
     // 웹 환경 감지 - identical(0, 0.0)은 웹에서는 true, 네이티브에서는 false
     _isWeb = identical(0, 0.0);
     dev.log('웹 환경여부: $_isWeb');
@@ -68,46 +69,47 @@ class _LoginScreenState extends State<LoginScreen> {
     _pwFocus.dispose();
     super.dispose();
   }
-  
+
   // 일반 로그인 처리 함수
   Future<void> _handleLogin() async {
     if (!_isButtonEnabled) return;
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     // 로딩 상태 표시
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text('로그인 중...'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('잠시만 기다려주세요...'),
-          ],
-        ),
-      ),
+      builder:
+          (context) => AlertDialog(
+            title: Text('로그인 중...'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('잠시만 기다려주세요...'),
+              ],
+            ),
+          ),
     );
-    
+
     try {
       // 서버에 로그인 요청 전송
       final response = await AuthService.login(
         email: _idController.text,
         password: _pwController.text,
       );
-      
+
       // 로딩 대화상자 닫기
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
       }
-      
+
       _log('로그인 성공!');
-      
+
       // 홈 화면으로 이동
       Navigator.pushReplacementNamed(context, '/home');
     } catch (error) {
@@ -115,13 +117,13 @@ class _LoginScreenState extends State<LoginScreen> {
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop();
       }
-      
+
       _log('로그인 실패: $error');
       setState(() {
         _showIdError = true;
         _showPwError = true;
       });
-      
+
       // 오류가 발생하면 홈으로 이동하지 않고 에러 메시지만 표시
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -136,13 +138,13 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
-  
+
   // 카카오 로그인 처리 함수
   Future<void> _handleKakaoLogin() async {
     // 로딩 대화상자 표시 전 웹 환경 감지 확인
     _isWeb = identical(0, 0.0);
     dev.log('카카오 로그인 시작 - 웹 환경여부: $_isWeb');
-    
+
     // 로딩 상태 표시
     showDialog(
       context: context,
@@ -155,13 +157,13 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               CircularProgressIndicator(),
               SizedBox(height: 16),
-              Text('로그인 처리중입니다.')
+              Text('로그인 처리중입니다.'),
             ],
           ),
         );
       },
     );
-    
+
     try {
       // 웹 환경에서 카카오 로그인 처리
       if (_isWeb) {
@@ -169,22 +171,26 @@ class _LoginScreenState extends State<LoginScreen> {
         try {
           // 브라우저 환경에서 카카오로그인 방식 변경
           bool isPopupMode = false; // true면 팝업, false면 리다이렉트
-          
+
           if (isPopupMode) {
             await UserApi.instance.loginWithKakaoAccount();
           } else {
             // 리다이렉트 모드 사용 - 이 방식이 웹에서 더 안정적
-            await UserApi.instance.loginWithKakaoAccount(prompts: [Prompt.login]);
+            await UserApi.instance.loginWithKakaoAccount(
+              prompts: [Prompt.login],
+            );
           }
-          
+
           final user = await UserApi.instance.me();
-          
+
           dev.log('카카오 로그인 성공: ${user.id}');
-          dev.log('사용자 정보: ${user.kakaoAccount?.profile?.nickname}, ${user.kakaoAccount?.email}');
-          
+          dev.log(
+            '사용자 정보: ${user.kakaoAccount?.profile?.nickname}, ${user.kakaoAccount?.email}',
+          );
+
           // 서버로 카카오 로그인 정보 전송
           final response = await AuthService.loginWithKakao(user);
-          
+
           // 로그인 성공
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop(); // 로딩 대화상자 닫기
@@ -195,7 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop(); // 로딩 대화상자 닫기
           }
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('카카오 로그인 오류: $error'),
@@ -204,28 +210,37 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           );
         }
-      } 
+      }
       // 모바일 환경에서 카카오 로그인 처리
       else {
         dev.log('모바일 환경에서 카카오 로그인 시도');
         try {
           // 카카오톡 어플리케이션 설치 여부 확인
           bool isKakaoInstalled = await isKakaoTalkInstalled();
-          
+
           // 카카오톡 어플리케이션 설치 여부에 따라 분기 처리
           if (isKakaoInstalled) {
             await UserApi.instance.loginWithKakaoTalk();
           } else {
-            await UserApi.instance.loginWithKakaoAccount(prompts: [Prompt.login]);
+            await UserApi.instance.loginWithKakaoAccount(
+              prompts: [Prompt.login],
+            );
           }
-          
+
           // 카카오 사용자 정보 요청
           final user = await UserApi.instance.me();
           dev.log('카카오 로그인 성공: ${user.id}');
-          
+
           // 서버로 카카오 로그인 정보 전송
           final response = await AuthService.loginWithKakao(user);
-          
+
+          // ✅ 토큰 저장
+          AuthToken().accessToken = response['token'];
+
+          // ✅ 사용자 정보 조회 및 저장
+          final userInfo = await AuthService.getUserInfo();
+          AuthToken().userId = userInfo['id'];
+
           // 로그인 성공
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop(); // 로딩 대화상자 닫기
@@ -236,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop(); // 로딩 대화상자 닫기
           }
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('카카오 로그인 오류: $error'),
@@ -252,7 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (Navigator.canPop(context)) {
         Navigator.of(context).pop(); // 로딩 대화상자 닫기
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('카카오 로그인 오류: $e'),
@@ -293,7 +308,7 @@ class _LoginScreenState extends State<LoginScreen> {
               textAlign: TextAlign.center,
             ),
           ),
-          
+
           // 아이디 라벨
           Positioned(
             left: scaleW(22),
@@ -309,7 +324,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
+
           // 아이디 입력 필드
           Positioned(
             left: scaleW(22),
@@ -320,7 +335,10 @@ class _LoginScreenState extends State<LoginScreen> {
               child: TextField(
                 controller: _idController,
                 focusNode: _idFocus,
-                cursorColor: _showIdError ? const Color(0xFFDE4242) : const Color(0xFF657AE3),
+                cursorColor:
+                    _showIdError
+                        ? const Color(0xFFDE4242)
+                        : const Color(0xFF657AE3),
                 style: const TextStyle(fontSize: 12),
                 onChanged: (text) {
                   _checkFields(); // 원래 로직 유지
@@ -338,28 +356,37 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Color(0xFF929292),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  suffixIcon: _showIdError
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: Image.asset(
-                            'assets/images/error_icon.png',
-                            width: 18,
-                            height: 18,
-                          ),
-                        )
-                      : null,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  suffixIcon:
+                      _showIdError
+                          ? Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: Image.asset(
+                              'assets/images/error_icon.png',
+                              width: 18,
+                              height: 18,
+                            ),
+                          )
+                          : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
-                      color: _showIdError ? const Color(0xFFDE4242) : const Color(0xFF929292),
+                      color:
+                          _showIdError
+                              ? const Color(0xFFDE4242)
+                              : const Color(0xFF929292),
                       width: 1.5,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
-                      color: _showIdError ? const Color(0xFFDE4242) : const Color(0xFF929292),
+                      color:
+                          _showIdError
+                              ? const Color(0xFFDE4242)
+                              : const Color(0xFF929292),
                       width: 1.5,
                     ),
                   ),
@@ -367,7 +394,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
+
           // 아이디 에러 메시지
           if (_showIdError)
             Positioned(
@@ -378,7 +405,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(color: Color(0xFFDE4242), fontSize: 10),
               ),
             ),
-          
+
           // 비밀번호 라벨
           Positioned(
             left: scaleW(22),
@@ -394,7 +421,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
+
           // 비밀번호 입력 필드
           Positioned(
             left: scaleW(22),
@@ -406,7 +433,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _pwController,
                 focusNode: _pwFocus,
                 obscureText: true,
-                cursorColor: _showPwError ? const Color(0xFFDE4242) : const Color(0xFF657AE3),
+                cursorColor:
+                    _showPwError
+                        ? const Color(0xFFDE4242)
+                        : const Color(0xFF657AE3),
                 style: const TextStyle(fontSize: 12),
                 onChanged: (text) {
                   _checkFields(); // 원래 로직 유지
@@ -424,37 +454,46 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Color(0xFF929292),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  suffixIcon: _showPwError
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: Image.asset(
-                            'assets/images/error_icon.png',
-                            width: 18,
-                            height: 18,
-                          ),
-                        )
-                      : (_pwFocus.hasFocus
+                  suffixIcon:
+                      _showPwError
                           ? Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: Image.asset(
-                                'assets/images/NoPreview1.png',
-                                width: 20,
-                                height: 20,
-                              ),
-                            )
-                          : null),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.only(right: 12),
+                            child: Image.asset(
+                              'assets/images/error_icon.png',
+                              width: 18,
+                              height: 18,
+                            ),
+                          )
+                          : (_pwFocus.hasFocus
+                              ? Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: Image.asset(
+                                  'assets/images/NoPreview1.png',
+                                  width: 20,
+                                  height: 20,
+                                ),
+                              )
+                              : null),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
-                      color: _showPwError ? const Color(0xFFDE4242) : const Color(0xFF929292),
+                      color:
+                          _showPwError
+                              ? const Color(0xFFDE4242)
+                              : const Color(0xFF929292),
                       width: 1.5,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
-                      color: _showPwError ? const Color(0xFFDE4242) : const Color(0xFF929292),
+                      color:
+                          _showPwError
+                              ? const Color(0xFFDE4242)
+                              : const Color(0xFF929292),
                       width: 1.5,
                     ),
                   ),
@@ -462,7 +501,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
+
           // 비밀번호 에러 메시지
           if (_showPwError)
             Positioned(
@@ -473,7 +512,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(color: Color(0xFFDE4242), fontSize: 10),
               ),
             ),
-          
+
           // 아이디/비밀번호 찾기 버튼
           Positioned(
             left: scaleW(131),
@@ -508,7 +547,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
           ),
-          
+
           // 로그인 버튼
           Positioned(
             left: scaleW(22),
@@ -516,14 +555,16 @@ class _LoginScreenState extends State<LoginScreen> {
             child: InkWell(
               onTap: _isButtonEnabled ? _handleLogin : null,
               child: Image.asset(
-                _isButtonEnabled ? 'assets/images/Group245.png' : 'assets/images/Group223.png',
+                _isButtonEnabled
+                    ? 'assets/images/Group245.png'
+                    : 'assets/images/Group223.png',
                 width: scaleW(346),
                 height: scaleH(53),
                 fit: BoxFit.contain,
               ),
             ),
           ),
-          
+
           // 카카오 로그인 버튼
           Positioned(
             left: scaleW(24),
@@ -538,7 +579,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          
+
           // 회원가입 버튼
           Positioned(
             left: scaleW(24),
