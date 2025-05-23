@@ -1,6 +1,13 @@
 // This is a stub implementation of WebView for web platform
 import 'package:flutter/material.dart';
 
+// NavigationDelegate 스텁 구현
+class NavigationDelegate {
+  final Function(String)? onPageFinished;
+  
+  const NavigationDelegate({this.onPageFinished});
+}
+
 // Stub implementation of WebViewController for web
 class WebViewController {
   String? _htmlContent;
@@ -10,6 +17,22 @@ class WebViewController {
   WebViewController loadHtmlString(String htmlContent) {
     _htmlContent = htmlContent;
     return this;
+  }
+  
+  WebViewController setNavigationDelegate(NavigationDelegate delegate) {
+    // 웹 환경에서는 페이지 로드 완료 콜백 직접 호출
+    Future.delayed(Duration(milliseconds: 500), () {
+      if (delegate.onPageFinished != null) {
+        delegate.onPageFinished!('about:blank');
+      }
+    });
+    return this;
+  }
+  
+  Future<void> runJavaScript(String javaScript) async {
+    // 웹 환경에서는 아무 작업도 수행하지 않음
+    print('웹 환경에서 JavaScript 실행 무시: ${javaScript.substring(0, javaScript.length > 50 ? 50 : javaScript.length)}...');
+    return;
   }
   
   Future<String?> currentUrl() async => null;
