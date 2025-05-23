@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:developer' as dev;
@@ -420,15 +420,19 @@ class _SignupStartScreenState extends State<SignupStartScreen> {
                       : Image.asset('assets/images/check.png', width: 18))
                   : null,
             ),
-            onChanged: (text) {
-              setState(() {
-                bool _isIdValid(String id) {
-                  final regex = RegExp(r'^[a-zA-Z0-9]{4,12}$');
-                  return regex.hasMatch(id);
-                }
+            onChanged: (text) async {
+              // 입력 유효성 검사 함수
+              bool _isIdValid(String id) {
+                final regex = RegExp(r'^[a-zA-Z0-9]{4,12}$');
+                return regex.hasMatch(id);
+              }
 
+              // 비동기 API 호출 후 결과에 따라 상태 갱신
+              final isTaken = !(await AuthService.checkIdDuplicate(text));
+
+              setState(() {
                 _idChecked = true;
-                _idTaken = (text == 'dandan' || text == 'kitty0908');
+                _idTaken = isTaken;
                 _idValid = _isIdValid(text) && !_idTaken;
               });
             },

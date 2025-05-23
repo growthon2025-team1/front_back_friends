@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:kakao_flutter_sdk_auth/kakao_flutter_sdk_auth.dart';
-import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import 'dart:convert';
 import 'dart:developer' as dev;
 
@@ -88,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
     
     try {
       // 서버에 로그인 요청 전송
-      final response = await ApiService.login(
+      final response = await AuthService.login(
         email: _idController.text,
         password: _pwController.text,
       );
@@ -171,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
           dev.log('사용자 정보: ${user.kakaoAccount?.profile?.nickname}, ${user.kakaoAccount?.email}');
           
           // 서버로 카카오 로그인 정보 전송
-          final response = await ApiService.loginWithKakao(user);
+          final response = await AuthService.loginWithKakao(user);
           
           // 로그인 성공
           if (Navigator.canPop(context)) {
@@ -212,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
           dev.log('카카오 로그인 성공: ${user.id}');
           
           // 서버로 카카오 로그인 정보 전송
-          final response = await ApiService.loginWithKakao(user);
+          final response = await AuthService.loginWithKakao(user);
           
           // 로그인 성공
           if (Navigator.canPop(context)) {
