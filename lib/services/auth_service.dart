@@ -69,8 +69,8 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        AuthToken().accessToken = data['token']; // ✅ 토큰 저장 추가
-        final userInfo = await getUserInfo(); // ✅ 사용자 정보 저장
+        AuthToken().accessToken = data['token'];
+        final userInfo = await getUserInfo();
         AuthToken().userId = userInfo['id'];
         return {'success': true, 'token': data['token']};
       } else {
