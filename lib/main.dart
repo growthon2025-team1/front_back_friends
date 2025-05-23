@@ -5,6 +5,7 @@ import 'screens/register.dart';
 import 'screens/registered.dart';
 import 'screens/home.dart';
 import 'screens/map.dart';
+import 'screens/chat.dart';
 import 'screens/mypage.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'utils/auth_token.dart';
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomeScreen(),
         '/map': (context) => MapScreen(),
         '/mypage': (context) => MyPageScreen(),
+        '/chat': (context) => ChatScreen(),
       },
     );
   }
