@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:webview_flutter/webview_flutter.dart' if (dart.library.html) 'package:testapp/web/web_view_stub.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({Key? key}) : super(key: key);
@@ -14,17 +16,20 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-
+    
+    // 웹뷰 컨트롤러 초기화
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadHtmlString(_kakaoMapHtml);
-      
-  // 디버깅을 위한 URL 출력
-  Future.delayed(Duration(seconds: 1), () {
-    _controller.currentUrl().then((url) {
-      print("웹뷰 현재 URL: $url");
-    });
-  });
+    
+    // 웹 플랫폼이 아닐 때만 URL 디버깅 (웹 플랫폼에서는 currentUrl이 작동하지 않음)
+    if (!kIsWeb) {
+      Future.delayed(Duration(seconds: 1), () {
+        _controller.currentUrl().then((url) {
+          print("웹뷰 현재 URL: $url");
+        });
+      });
+    }
   }
 
   @override

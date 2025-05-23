@@ -165,7 +165,7 @@ class HomeScreen extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Image.asset(
-                            'assets/images/home.png',
+                            'assets/images/homeClicked.png',
                             width: scaleW(24),
                             height: scaleH(24),
                           ),
