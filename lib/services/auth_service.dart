@@ -36,10 +36,7 @@ class AuthService {
     required String password,
   }) async {
     const endpoint = '/auth/login';
-    final body = {
-      'username': email,
-      'password': password,
-    };
+    final body = {'username': email, 'password': password};
 
     try {
       final response = await ApiClient.post(endpoint, body);
@@ -82,7 +79,7 @@ class AuthService {
           'id': kakaoUser.id.toString(),
           'email': kakaoUser.kakaoAccount?.email ?? 'test@example.com',
           'nickname': kakaoUser.kakaoAccount?.profile?.nickname ?? '테스트유저',
-        }
+        },
       };
     }
   }
@@ -92,11 +89,7 @@ class AuthService {
 
     try {
       final response = await ApiClient.post(endpoint, {});
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        return false;
-      }
+      return response.statusCode == 200;
     } catch (e) {
       dev.log('중복 확인 오류: $e');
       return true;
@@ -107,11 +100,11 @@ class AuthService {
     const endpoint = '/auth/me';
 
     final token = AuthToken().accessToken;
-    print(token);
     try {
-      final response = await ApiClient.get(endpoint, headers: {
-        'Authorization': '$token',
-      });
+      final response = await ApiClient.get(
+        endpoint,
+        headers: {'Authorization': '$token'},
+      );
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
@@ -125,7 +118,7 @@ class AuthService {
         'username': 'test_user',
         'nickname': '테스트사용자',
         'isVerified': true,
-        'universityMail': 'test@example.com'
+        'universityEmail': 'test@example.com',
       };
     }
   }

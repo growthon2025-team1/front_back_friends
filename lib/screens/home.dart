@@ -28,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
       print('이름 불러오기 실패: $e');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -40,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-         
           Positioned(
             left: scaleW(22),
             top: scaleH(82),
@@ -82,7 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
             height: scaleH(151),
             child: GestureDetector(
               onTap: () => Navigator.pushNamed(context, '/home'),
-              child: Image.asset('assets/images/Frame1.png', fit: BoxFit.contain),
+              child: Image.asset(
+                'assets/images/Frame1.png',
+                fit: BoxFit.contain,
+              ),
             ),
           ),
 
@@ -99,7 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
             top: scaleH(407),
             width: scaleW(397),
             height: scaleH(8),
-            child: Image.asset('assets/images/Rectangle344.png', fit: BoxFit.cover),
+            child: Image.asset(
+              'assets/images/Rectangle344.png',
+              fit: BoxFit.cover,
+            ),
           ),
 
           Positioned(
