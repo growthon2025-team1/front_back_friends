@@ -59,7 +59,6 @@ class AuthService {
   static Future<Map<String, dynamic>> loginWithKakao(User kakaoUser) async {
     const endpoint = '/auth/kakao';
     final body = {
-      'kakaoId': kakaoUser.id.toString(),
       'email': kakaoUser.kakaoAccount?.email ?? '',
       'nickname': kakaoUser.kakaoAccount?.profile?.nickname ?? '',
       'profileImage': kakaoUser.kakaoAccount?.profile?.profileImageUrl ?? '',
@@ -67,23 +66,19 @@ class AuthService {
 
     try {
       final response = await ApiClient.post(endpoint, body);
+
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final data = jsonDecode(response.body);
+        AuthToken().accessToken = data['token']; // ✅ 토큰 저장 추가
+        final userInfo = await getUserInfo(); // ✅ 사용자 정보 저장
+        AuthToken().userId = userInfo['id'];
+        return {'success': true, 'token': data['token']};
       } else {
         throw Exception('카카오 로그인 실패: ${response.statusCode}');
       }
     } catch (e) {
       dev.log('카카오 로그인 오류: $e');
-      return {
-        'success': true,
-        'message': '오프라인 모드 - 카카오 로그인 성공',
-        'token': 'test_kakao_token_123',
-        'data': {
-          'id': kakaoUser.id.toString(),
-          'email': kakaoUser.kakaoAccount?.email ?? 'test@example.com',
-          'nickname': kakaoUser.kakaoAccount?.profile?.nickname ?? '테스트유저',
-        },
-      };
+      rethrow;
     }
   }
 
@@ -116,13 +111,7 @@ class AuthService {
       }
     } catch (e) {
       dev.log('사용자 정보 오류: $e');
-      return {
-        'id': 5,
-        'username': 'test_user',
-        'nickname': '테스트사용자',
-        'isVerified': true,
-        'universityEmail': 'test@example.com',
-      };
+      rethrow;
     }
   }
 }
