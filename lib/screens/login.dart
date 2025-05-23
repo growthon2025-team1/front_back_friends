@@ -256,107 +256,8 @@ class _LoginScreenState extends State<LoginScreen> {
           duration: Duration(seconds: 3),
         ),
       );
-
-  try {
-    // 웹 환경에서 카카오 로그인 처리
-    if (_isWeb) {
-      dev.log('웹 환경에서 카카오 로그인 시도');
-      try {
-        // 브라우저 환경에서 카카오로그인 방식 변경
-        bool isPopupMode = false; // true면 팝업, false면 리다이렉트
-
-        if (isPopupMode) {
-          await UserApi.instance.loginWithKakaoAccount();
-        } else {
-          // 리다이렉트 모드 사용 - 이 방식이 웹에서 더 안정적
-          await UserApi.instance.loginWithKakaoAccount(prompts: [Prompt.login]);
-        }
-
-        final user = await UserApi.instance.me();
-
-        dev.log('카카오 로그인 성공: ${user.id}');
-        dev.log('사용자 정보: ${user.kakaoAccount?.profile?.nickname}, ${user.kakaoAccount?.email}');
-
-        // 서버로 카카오 로그인 정보 전송
-        final response = await AuthService.loginWithKakao(user);
-
-        // 로그인 성공
-        if (Navigator.canPop(context)) {
-          Navigator.of(context).pop(); // 로딩 대화상자 닫기
-        }
-        Navigator.pushReplacementNamed(context, '/home');
-      } catch (error) {
-        dev.log('카카오 로그인 오류(WEB): $error');
-        if (Navigator.canPop(context)) {
-          Navigator.of(context).pop(); // 로딩 대화상자 닫기
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('카카오 로그인 오류: $error'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-    } 
-    // 모바일 환경에서 카카오 로그인 처리
-    else {
-      dev.log('모바일 환경에서 카카오 로그인 시도');
-      try {
-        // 카카오톡 어플리케이션 설치 여부 확인
-        bool isKakaoInstalled = await isKakaoTalkInstalled();
-
-        // 카카오톡 어플리케이션 설치 여부에 따라 분기 처리
-        if (isKakaoInstalled) {
-          await UserApi.instance.loginWithKakaoTalk();
-        } else {
-          await UserApi.instance.loginWithKakaoAccount(prompts: [Prompt.login]);
-        }
-
-        // 카카오 사용자 정보 요청
-        final user = await UserApi.instance.me();
-        dev.log('카카오 로그인 성공: ${user.id}');
-
-        // 서버로 카카오 로그인 정보 전송
-        final response = await AuthService.loginWithKakao(user);
-
-        // 로그인 성공
-        if (Navigator.canPop(context)) {
-          Navigator.of(context).pop(); // 로딩 대화상자 닫기
-        }
-        Navigator.pushReplacementNamed(context, '/home');
-      } catch (error) {
-        dev.log('카카오 로그인 오류(Mobile): $error');
-        if (Navigator.canPop(context)) {
-          Navigator.of(context).pop(); // 로딩 대화상자 닫기
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('카카오 로그인 오류: $error'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
     }
-  } catch (e) {
-    // 기타 예외 처리
-    dev.log('카카오 로그인 중 예외 발생: $e');
-    if (Navigator.canPop(context)) {
-      Navigator.of(context).pop(); // 로딩 대화상자 닫기
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('카카오 로그인 오류: $e'),
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 3),
-      ),
-    );
   }
-}
 
 @override
 Widget build(BuildContext context) {
@@ -654,4 +555,5 @@ Widget build(BuildContext context) {
       ],
     ),
   );
+  }
 }
