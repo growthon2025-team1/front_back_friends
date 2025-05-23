@@ -43,6 +43,7 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         AuthToken().accessToken = data['token'];
+
         final userInfo = await getUserInfo();
         AuthToken().userId = userInfo['id'];
         return {'success': true, 'token': data['token']};
@@ -100,25 +101,13 @@ class AuthService {
 
   static Future<Map<String, dynamic>> getUserInfo() async {
     const endpoint = '/auth/me';
-
     final token = AuthToken().accessToken;
-<<<<<<< HEAD
+
     try {
       final response = await ApiClient.get(
         endpoint,
         headers: {'Authorization': '$token'},
       );
-=======
-    print('getUserInfo 토큰: $token');
-    try {
-      // 인증 헤더 형식 수정 (Bearer 제거)
-      final response = await ApiClient.get(endpoint, headers: {
-        'Authorization': '$token',
-      });
-      
-      print('getUserInfo 응답 상태: ${response.statusCode}');
-      print('getUserInfo 응답 내용: ${response.body}');
->>>>>>> 08f96f9d67ebaaf61da8d317e3e69b94a38aa9d2
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
