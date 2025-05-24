@@ -39,18 +39,32 @@ class AuthService {
     final body = {'username': email, 'password': password};
 
     try {
+      // 요청 내용 로깅
+      dev.log('로그인 요청: $body to $endpoint');
+      
       final response = await ApiClient.post(endpoint, body);
+      dev.log('로그인 응답 코드: ${response.statusCode}');
+      dev.log('로그인 응답 본문: ${response.body}');
+      
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        AuthToken().accessToken = 'Bearer ${data['token']}'; // 여기서 붙이기
+        // Bearer 접두사는 API 호출 시에만 추가하고, 저장할 때는 토큰만 저장
+        AuthToken().accessToken = data['token']; 
         AuthToken().userId = data['userId'];
         return {'success': true, 'token': data['token']};
       } else {
-        throw Exception('로그인 실패: ${response.statusCode}');
+        // 오류 메시지가 응답 본문에 있는 경우 추출
+        String errorMessage = '로그인 실패';
+        try {
+          errorMessage = response.body;
+        } catch (e) {
+          errorMessage = '로그인 실패: ${response.statusCode}';
+        }
+        throw Exception(errorMessage);
       }
     } catch (e) {
       dev.log('로그인 오류: $e');
-      throw Exception('로그인 실패: 서버 연결 오류');
+      throw Exception(e.toString().contains('Exception:') ? e.toString() : '로그인 실패: 서버 연결 오류');
     }
   }
 

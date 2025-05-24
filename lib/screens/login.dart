@@ -76,28 +76,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() {
       _isLoading = true;
+      // 오류 메시지 초기화
+      _showIdError = false;
+      _showPwError = false;
     });
 
     // 로딩 상태 표시
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => AlertDialog(
-            title: Text('로그인 중...'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('잠시만 기다려주세요...'),
-              ],
-            ),
-          ),
+      builder: (context) => AlertDialog(
+        title: Text('로그인 중...'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('잠시만 기다려주세요...'),
+          ],
+        ),
+      ),
     );
 
     try {
       // 서버에 로그인 요청 전송
+      dev.log('로그인 시도: ${_idController.text}');
       final response = await AuthService.login(
         email: _idController.text,
         password: _pwController.text,
@@ -118,16 +121,29 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.of(context).pop();
       }
 
-      _log('로그인 실패: $error');
+      dev.log('로그인 오류 상세: $error');
+      
+      // 에러 메시지 처리 및 표시
+      String errorMessage = '아이디 또는 비밀번호가 틀렸습니다.';
+      
+      if (error.toString().contains('가입되지 않은 아이디')) {
+        errorMessage = '가입되지 않은 아이디입니다.';
+      } else if (error.toString().contains('비밀번호가 일치하지 않')) {
+        errorMessage = '비밀번호가 일치하지 않습니다.';
+      } else if (error.toString().contains('서버 연결 오류')) {
+        errorMessage = '서버 연결에 실패했습니다. 인터넷 연결을 확인해주세요.';
+      }
+      
+      _log('로그인 실패: $errorMessage');
       setState(() {
         _showIdError = true;
         _showPwError = true;
       });
 
-      // 오류가 발생하면 홈으로 이동하지 않고 에러 메시지만 표시
+      // 오류 메시지 표시
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('로그인 실패: 아이디와 비밀번호를 확인하세요'),
+          content: Text(errorMessage),
           backgroundColor: Colors.red,
           duration: Duration(seconds: 3),
         ),
