@@ -5,6 +5,8 @@ import 'api_client.dart';
 import '../utils/auth_token.dart';
 
 class AuthService {
+  static const bool isDevelopment = false;
+
   static Future<Map<String, dynamic>> registerUser({
     required String name,
     required String email,
@@ -27,7 +29,10 @@ class AuthService {
       }
     } catch (e) {
       dev.log('회원가입 오류: $e');
-      return {'success': true, 'message': '오프라인 모드 - 회원가입 성공'};
+      if (isDevelopment) {
+        return {'success': true, 'message': '오프라인 모드 - 회원가입 성공'};
+      }
+      rethrow;
     }
   }
 
@@ -42,7 +47,7 @@ class AuthService {
       final response = await ApiClient.post(endpoint, body);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        AuthToken().accessToken = 'Bearer ${data['token']}'; // 여기서 붙이기
+        AuthToken().accessToken = '${data['token']}';
         AuthToken().userId = data['userId'];
         return {'success': true, 'token': data['token']};
       } else {
@@ -64,30 +69,34 @@ class AuthService {
 
     try {
       final response = await ApiClient.post(endpoint, body);
-
-      // ✅ 응답 로그 확인
       final data = jsonDecode(response.body);
+
       dev.log('🔁 [카카오 로그인] 응답 데이터: $data');
 
-      if (response.statusCode == 200 && data.containsKey('token')) {
-        AuthToken().accessToken = data['token'];
+      if (response.statusCode == 200 &&
+          data.containsKey('token') &&
+          data['token'] != null) {
+        AuthToken().accessToken = 'Bearer ${data['token']}';
         AuthToken().userId = data['userId'];
         return {'success': true, 'token': data['token']};
       } else {
-        throw Exception('카카오 로그인 실패: 응답 형식 오류');
+        throw Exception('카카오 로그인 실패: 응답 형식 오류 또는 누락');
       }
     } catch (e) {
       dev.log('카카오 로그인 오류: $e');
-      return {
-        'success': true,
-        'message': '오프라인 모드 - 카카오 로그인 성공',
-        'token': 'test_kakao_token_123',
-        'data': {
-          'id': kakaoUser.id.toString(),
-          'email': kakaoUser.kakaoAccount?.email ?? 'test@example.com',
-          'nickname': kakaoUser.kakaoAccount?.profile?.nickname ?? '테스트유저',
-        },
-      };
+      if (isDevelopment) {
+        return {
+          'success': true,
+          'message': '오프라인 모드 - 카카오 로그인 성공',
+          'token': 'Bearer test_kakao_token_123',
+          'data': {
+            'id': kakaoUser.id.toString(),
+            'email': kakaoUser.kakaoAccount?.email ?? 'test@example.com',
+            'nickname': kakaoUser.kakaoAccount?.profile?.nickname ?? '테스트유저',
+          },
+        };
+      }
+      rethrow;
     }
   }
 
@@ -120,13 +129,16 @@ class AuthService {
       }
     } catch (e) {
       dev.log('사용자 정보 오류: $e');
-      return {
-        'id': 5,
-        'username': 'test_user',
-        'nickname': '테스트사용자',
-        'isVerified': true,
-        'universityEmail': 'test@example.com',
-      };
+      if (isDevelopment) {
+        return {
+          'id': 5,
+          'username': 'test_user',
+          'nickname': '테스트사용자',
+          'isVerified': true,
+          'universityEmail': 'test@example.com',
+        };
+      }
+      rethrow;
     }
   }
 }
