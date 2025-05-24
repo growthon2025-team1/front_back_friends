@@ -38,6 +38,7 @@ dependencies:
   webview_flutter: ^4.5.0
   stomp_dart_client: ^0.4.4
   web_socket_channel: ^2.4.0
+  kakao_map_plugin: ^0.3.7
 
 flutter:
   uses-material-design: true

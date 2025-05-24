@@ -1,53 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:kakao_map_plugin/kakao_map_plugin.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({Key? key}) : super(key: key);
+  final List<Map<String, dynamic>>? posts;
+  const MapScreen({Key? key, this.posts}) : super(key: key);
 
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
-  late WebViewController _controller;
+  late KakaoMapController mapController;
+  LatLng? currentLatLng;
 
   @override
   void initState() {
     super.initState();
-    _initMap();
+    AuthRepository.initialize(appKey: 'a7e4980f47456ce077cd8f7945702814');
+    _initLocation();
   }
 
-  Future<void> _initMap() async {
+  Future<void> _initLocation() async {
     try {
       final position = await _determinePosition();
-      final lat = position.latitude;
-      final lng = position.longitude;
-
-      _controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        ..loadHtmlString(_buildKakaoMapHtml(lat, lng));
-
-      setState(() {});
+      setState(() {
+        currentLatLng = LatLng(position.latitude, position.longitude);
+      });
     } catch (e) {
-      print("위치 가져오기 실패: $e");
+      print('위치 가져오기 실패: $e');
+      // 기본 좌표 (서울시청)
+      setState(() {
+        currentLatLng = LatLng(37.5665, 126.9780);
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final posts =
+        widget.posts ??
+        [
+          {'title': '귤 나눔해요', 'lat': 37.5665, 'lng': 126.9780},
+          {'title': '도서 교환합니다', 'lat': 37.5672, 'lng': 126.9791},
+          {'title': '텀블러 나눔', 'lat': 37.5651, 'lng': 126.9769},
+        ];
+
+    final markers =
+        posts.map((post) {
+          return Marker(
+            markerId: post['title'],
+            latLng: LatLng(post['lat'], post['lng']),
+            infoWindowContent: post['title'],
+            width: 40,
+            height: 40,
+          );
+        }).toList();
+
     final double w = MediaQuery.of(context).size.width;
     final double h = MediaQuery.of(context).size.height;
-
     double scaleW(double value) => value * (w / 375);
     double scaleH(double value) => value * (h / 812);
 
     return Scaffold(
       body: Stack(
         children: [
-          if (_controller != null)
-            WebViewWidget(controller: _controller),
+          if (currentLatLng != null)
+            KakaoMap(
+              onMapCreated: (controller) => mapController = controller,
+              center: currentLatLng!,
+              markers: markers,
+            )
+          else
+            const Center(child: CircularProgressIndicator()),
           Positioned(
             left: 0,
             bottom: 0,
@@ -112,11 +137,7 @@ class _NavItem extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset(
-            imagePath,
-            width: scaleW(24),
-            height: scaleH(24),
-          ),
+          Image.asset(imagePath, width: scaleW(24), height: scaleH(24)),
           SizedBox(height: scaleH(4)),
           Text(
             label,
@@ -154,42 +175,4 @@ Future<Position> _determinePosition() async {
   }
 
   return await Geolocator.getCurrentPosition();
-}
-
-// 현재 위치 기반 HTML 생성 함수
-String _buildKakaoMapHtml(double lat, double lng) {
-  return '''
-  <!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="utf-8">
-      <title>Kakao Map</title>
-      <script type="text/javascript"
-        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=a7e4980f47456ce077cd8f7945702814&autoload=false">
-      </script>
-      <style>
-        html, body { margin: 0; padding: 0; height: 100%; }
-        #map { width: 100%; height: 100%; }
-      </style>
-    </head>
-    <body>
-      <div id="map"></div>
-      <script>
-        kakao.maps.load(function() {
-          var mapContainer = document.getElementById('map'); 
-          var mapOption = {
-            center: new kakao.maps.LatLng($lat, $lng),
-            level: 3
-          };  
-          var map = new kakao.maps.Map(mapContainer, mapOption); 
-
-          var marker = new kakao.maps.Marker({
-              position: new kakao.maps.LatLng($lat, $lng)
-          });
-          marker.setMap(map);
-        });
-      </script>
-    </body>
-  </html>
-  ''';
 }
