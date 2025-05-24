@@ -81,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: scaleW(346),
             height: scaleH(151),
             child: GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/home'),
+              onTap: () => Navigator.pushNamed(context, '/registerFood'),
               child: Image.asset(
                 'assets/images/Frame1.png',
                 fit: BoxFit.contain,

@@ -14,7 +14,13 @@ class PostService {
       postData,
       headers: {'Authorization': 'Bearer $token'},
     );
-    return jsonDecode(response.body);
+
+    // ✅ 응답이 비어도 처리할 수 있도록
+    if (response.body.isNotEmpty) {
+      return jsonDecode(response.body);
+    } else {
+      return {}; // 빈 응답이면 기본값
+    }
   }
 
   // 게시글 목록 조회
@@ -34,7 +40,7 @@ class PostService {
           'latitude': 37.5665,
           'longitude': 126.9780,
           'userId': 1,
-          'createdAt': '2025-05-23T10:30:00Z'
+          'createdAt': '2025-05-23T10:30:00Z',
         },
         {
           'id': 2,
@@ -43,7 +49,7 @@ class PostService {
           'latitude': 37.5607,
           'longitude': 126.9961,
           'userId': 2,
-          'createdAt': '2025-05-23T09:15:00Z'
+          'createdAt': '2025-05-23T09:15:00Z',
         },
         {
           'id': 3,
@@ -52,7 +58,7 @@ class PostService {
           'latitude': 37.5540,
           'longitude': 126.9704,
           'userId': 3,
-          'createdAt': '2025-05-23T11:45:00Z'
+          'createdAt': '2025-05-23T11:45:00Z',
         },
         {
           'id': 4,
@@ -61,7 +67,7 @@ class PostService {
           'latitude': 37.5727,
           'longitude': 126.9881,
           'userId': 4,
-          'createdAt': '2025-05-23T14:20:00Z'
+          'createdAt': '2025-05-23T14:20:00Z',
         },
         {
           'id': 5,
@@ -70,8 +76,8 @@ class PostService {
           'latitude': 37.5503,
           'longitude': 126.9903,
           'userId': 5,
-          'createdAt': '2025-05-23T16:00:00Z'
-        }
+          'createdAt': '2025-05-23T16:00:00Z',
+        },
       ];
     }
   }
