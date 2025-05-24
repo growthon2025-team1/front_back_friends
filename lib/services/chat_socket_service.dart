@@ -34,7 +34,7 @@ class ChatSocketService {
           );
         },
         onWebSocketError: (dynamic error) => print('❌ WebSocket 에러: $error'),
-        stompConnectHeaders: {'Authorization': 'bearer $token'},
+        stompConnectHeaders: {'Authorization': '$token'},
         webSocketConnectHeaders: {'Authorization': 'bearer $token'},
         reconnectDelay: const Duration(seconds: 5),
         heartbeatOutgoing: const Duration(seconds: 10),
@@ -51,9 +51,14 @@ class ChatSocketService {
   }) {
     final token = AuthToken().accessToken;
 
+    if (_client == null || !_client!.connected) {
+      print('❌ STOMP 연결이 아직 설정되지 않았습니다.');
+      return;
+    }
+
     final message = {
       'chatRoomId': int.parse(chatRoomId),
-      'senderId': null, // 서버에서 Principal로 설정됨
+      'senderId': null,
       'content': content,
     };
 
