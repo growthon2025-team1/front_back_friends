@@ -1,33 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  String? userName;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchUserName();
-  }
-
-  Future<void> fetchUserName() async {
-    try {
-      final fetchedName = await AuthService.getUserInfo();
-
-      setState(() {
-        userName = fetchedName['nickname'];
-      });
-    } catch (e) {
-      print('이름 불러오기 실패: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: SizedBox(
               width: scaleW(300),
               height: scaleH(70),
-              child: Text(
-                '안녕하세요, ${userName ?? '...'}님\n오늘의 냉장고에는 무엇이 있나요?',
+              child: const Text(
+                '안녕하세요, 마루님\n오늘의 냉장고에는 무엇이 있나요?',
                 style: TextStyle(
                   fontFamily: 'Noto Sans KR',
                   fontWeight: FontWeight.w700,
@@ -81,11 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
             width: scaleW(346),
             height: scaleH(151),
             child: GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/registerFood'),
-              child: Image.asset(
-                'assets/images/Frame1.png',
-                fit: BoxFit.contain,
-              ),
+              onTap: () => Navigator.pushNamed(context, '/home'),
+              child: Image.asset('assets/images/Frame1.png', fit: BoxFit.contain),
             ),
           ),
 
@@ -94,7 +65,10 @@ class _HomeScreenState extends State<HomeScreen> {
             top: scaleH(335),
             width: scaleW(346),
             height: scaleH(46),
-            child: Image.asset('assets/images/CTA1.png', fit: BoxFit.contain),
+            child: GestureDetector(
+              onTap: () => Navigator.pushNamed(context, '/registerFood'),
+              child: Image.asset('assets/images/CTA1.png', fit: BoxFit.contain),
+            ),
           ),
 
           Positioned(
@@ -102,10 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
             top: scaleH(407),
             width: scaleW(397),
             height: scaleH(8),
-            child: Image.asset(
-              'assets/images/Rectangle344.png',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('assets/images/Rectangle344.png', fit: BoxFit.cover),
           ),
 
           Positioned(
@@ -182,136 +153,97 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  InkWell(
-                    onTap: () {
-                      print('홈 버튼 클릭됨');
-                      Navigator.of(context).pushReplacementNamed('/home');
-                    },
-                    splashColor: Colors.grey.withOpacity(0.3),
-                    highlightColor: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: EdgeInsets.all(scaleW(4)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/homeClicked.png',
-                            width: scaleW(24),
-                            height: scaleH(24),
-                          ),
-                          SizedBox(height: scaleH(4)),
-                          const Text(
-                            '홈',
-                            style: TextStyle(
-                              fontFamily: 'Noto Sans KR',
-                              fontWeight: FontWeight.w300,
-                              fontSize: 9,
-                              color: Color(0xFFB4B4B4),
-                              height: 1.22,
-                            ),
-                          ),
-                        ],
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/home.png',
+                        width: scaleW(24),
+                        height: scaleH(24),
                       ),
+                      SizedBox(height: scaleH(4)),
+                      const Text(
+                        '홈',
+                        style: TextStyle(
+                          fontFamily: 'Noto Sans KR',
+                          fontWeight: FontWeight.w300,
+                          fontSize: 9,
+                          color: Color(0xFFB4B4B4),
+                          height: 1.22,
+                        ),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, '/map'),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/map.png',
+                          width: scaleW(24),
+                          height: scaleH(24),
+                        ),
+                        SizedBox(height: scaleH(4)),
+                        const Text(
+                          '지도',
+                          style: TextStyle(
+                            fontFamily: 'Noto Sans KR',
+                            fontWeight: FontWeight.w300,
+                            fontSize: 9,
+                            color: Color(0xFFB4B4B4),
+                            height: 1.22,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  InkWell(
-                    onTap: () {
-                      print('맵 버튼 클릭됨');
-                      Navigator.of(context).pushNamed('/map');
-                    },
-                    splashColor: Colors.grey.withOpacity(0.3),
-                    highlightColor: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: EdgeInsets.all(scaleW(4)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/map.png',
-                            width: scaleW(24),
-                            height: scaleH(24),
+                  GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, '/chatlist'),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/chat.png',
+                          width: scaleW(24),
+                          height: scaleH(24),
+                        ),
+                        SizedBox(height: scaleH(4)),
+                        const Text(
+                          '채팅',
+                          style: TextStyle(
+                            fontFamily: 'Noto Sans KR',
+                            fontWeight: FontWeight.w300,
+                            fontSize: 9,
+                            color: Color(0xFFB4B4B4),
+                            height: 1.22,
                           ),
-                          SizedBox(height: scaleH(4)),
-                          const Text(
-                            '지도',
-                            style: TextStyle(
-                              fontFamily: 'Noto Sans KR',
-                              fontWeight: FontWeight.w300,
-                              fontSize: 9,
-                              color: Color(0xFFB4B4B4),
-                              height: 1.22,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                  InkWell(
-                    onTap: () {
-                      print('채팅 버튼 클릭됨');
-                      Navigator.of(context).pushNamed('/chat');
-                    },
-                    splashColor: Colors.grey.withOpacity(0.3),
-                    highlightColor: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: EdgeInsets.all(scaleW(4)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/chat.png',
-                            width: scaleW(24),
-                            height: scaleH(24),
+                  GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, '/mypage'),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/my.png',
+                          width: scaleW(24),
+                          height: scaleH(24),
+                        ),
+                        SizedBox(height: scaleH(4)),
+                        const Text(
+                          '마이',
+                          style: TextStyle(
+                            fontFamily: 'Noto Sans KR',
+                            fontWeight: FontWeight.w300,
+                            fontSize: 9,
+                            color: Color(0xFFB4B4B4),
+                            height: 1.22,
                           ),
-                          SizedBox(height: scaleH(4)),
-                          const Text(
-                            '채팅',
-                            style: TextStyle(
-                              fontFamily: 'Noto Sans KR',
-                              fontWeight: FontWeight.w300,
-                              fontSize: 9,
-                              color: Color(0xFFB4B4B4),
-                              height: 1.22,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      print('마이 버튼 클릭됨');
-                      Navigator.of(context).pushNamed('/mypage');
-                    },
-                    splashColor: Colors.grey.withOpacity(0.3),
-                    highlightColor: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: EdgeInsets.all(scaleW(4)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/my.png',
-                            width: scaleW(24),
-                            height: scaleH(24),
-                          ),
-                          SizedBox(height: scaleH(4)),
-                          const Text(
-                            '마이',
-                            style: TextStyle(
-                              fontFamily: 'Noto Sans KR',
-                              fontWeight: FontWeight.w300,
-                              fontSize: 9,
-                              color: Color(0xFFB4B4B4),
-                              height: 1.22,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
