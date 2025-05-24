@@ -185,42 +185,72 @@ class _LoginScreenState extends State<LoginScreen> {
       if (_isWeb) {
         dev.log('웹 환경에서 카카오 로그인 시도');
         try {
-          // 브라우저 환경에서 카카오로그인 방식 변경
-          bool isPopupMode = false; // true면 팝업, false면 리다이렉트
+          // 웹 환경 감지 및 설정 확인
+          dev.log('웹 환경 설정 확인 - 리디렉션 URI가 올바르게 설정되어 있는지 확인하세요');
+          
+          // 웹 환경에서는 리디렉션 모드가 더 안정적
+          bool isPopupMode = false;
+          
+          try {
+            if (isPopupMode) {
+              // 팝업 모드 - 일부 브라우저에서 차단될 수 있음
+              dev.log('팝업 모드로 카카오 로그인 시도');
+              await UserApi.instance.loginWithKakaoAccount();
+            } else {
+              // 리디렉션 모드 - 웹에서 권장되는 방식
+              dev.log('리디렉션 모드로 카카오 로그인 시도');
+              await UserApi.instance.loginWithKakaoAccount(
+                prompts: [Prompt.login],
+              );
+            }
+            
+            // 로그인 성공 후 사용자 정보 요청
+            dev.log('카카오 계정 로그인 성공, 사용자 정보 요청');
+            final user = await UserApi.instance.me();
+            
+            dev.log('카카오 로그인 성공: ${user.id}');
+            dev.log('사용자 정보: ${user.kakaoAccount?.profile?.nickname}, ${user.kakaoAccount?.email}');
+            
+            // 사용자 정보 상세 로깅
+            if (user.kakaoAccount != null) {
+              dev.log('이메일: ${user.kakaoAccount?.email ?? "없음"}');
+              dev.log('이메일 인증됨: ${user.kakaoAccount?.isEmailVerified ?? false}');
+              dev.log('닉네임: ${user.kakaoAccount?.profile?.nickname ?? "없음"}');
+            }
 
-          if (isPopupMode) {
-            await UserApi.instance.loginWithKakaoAccount();
-          } else {
-            // 리다이렉트 모드 사용 - 이 방식이 웹에서 더 안정적
-            await UserApi.instance.loginWithKakaoAccount(
-              prompts: [Prompt.login],
-            );
+            // 서버로 카카오 로그인 정보 전송
+            dev.log('서버에 카카오 로그인 정보 전송');
+            final response = await AuthService.loginWithKakao(user);
+            dev.log('서버 응답: $response');
+
+            // 로그인 성공
+            if (Navigator.canPop(context)) {
+              Navigator.of(context).pop(); // 로딩 대화상자 닫기
+            }
+            
+            dev.log('홈 화면으로 이동');
+            Navigator.pushReplacementNamed(context, '/home');
+          } catch (sdkError) {
+            dev.log('카카오 SDK 오류: $sdkError');
+            throw Exception('카카오 SDK 오류: $sdkError');
           }
-
-          final user = await UserApi.instance.me();
-
-          dev.log('카카오 로그인 성공: ${user.id}');
-          dev.log(
-            '사용자 정보: ${user.kakaoAccount?.profile?.nickname}, ${user.kakaoAccount?.email}',
-          );
-
-          // 서버로 카카오 로그인 정보 전송
-          final response = await AuthService.loginWithKakao(user);
-
-          // 로그인 성공
-          if (Navigator.canPop(context)) {
-            Navigator.of(context).pop(); // 로딩 대화상자 닫기
-          }
-          Navigator.pushReplacementNamed(context, '/home');
         } catch (error) {
           dev.log('카카오 로그인 오류(WEB): $error');
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop(); // 로딩 대화상자 닫기
           }
 
+          // 오류 메시지 개선
+          String errorMessage = '카카오 로그인 중 오류가 발생했습니다';
+          if (error.toString().contains('cancelled')) {
+            errorMessage = '로그인이 취소되었습니다';
+          } else if (error.toString().contains('network')) {
+            errorMessage = '네트워크 연결을 확인해주세요';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('카카오 로그인 오류: $error'),
+              content: Text(errorMessage),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),
@@ -233,34 +263,56 @@ class _LoginScreenState extends State<LoginScreen> {
         try {
           // 카카오톡 어플리케이션 설치 여부 확인
           bool isKakaoInstalled = await isKakaoTalkInstalled();
+          dev.log('카카오톡 앱 설치 여부: $isKakaoInstalled');
 
           // 카카오톡 어플리케이션 설치 여부에 따라 분기 처리
           if (isKakaoInstalled) {
+            dev.log('카카오톡 앱으로 로그인 시도');
             await UserApi.instance.loginWithKakaoTalk();
           } else {
+            dev.log('카카오 계정으로 로그인 시도');
             await UserApi.instance.loginWithKakaoAccount(
               prompts: [Prompt.login],
             );
           }
 
           // 카카오 사용자 정보 요청
+          dev.log('카카오 사용자 정보 요청');
           final user = await UserApi.instance.me();
           dev.log('카카오 로그인 성공: ${user.id}');
+          
+          // 사용자 정보 상세 로깅
+          if (user.kakaoAccount != null) {
+            dev.log('이메일: ${user.kakaoAccount?.email ?? "없음"}');
+            dev.log('이메일 인증됨: ${user.kakaoAccount?.isEmailVerified ?? false}');
+            dev.log('닉네임: ${user.kakaoAccount?.profile?.nickname ?? "없음"}');
+          }
 
           // 서버로 카카오 로그인 정보 전송
+          dev.log('서버에 카카오 로그인 정보 전송');
           final response = await AuthService.loginWithKakao(user);
+          dev.log('서버 응답: $response');
 
-          // ✅ 토큰 저장
-          AuthToken().accessToken = response['token'];
+          // 토큰 저장 - 개선된 AuthToken 클래스 사용
+          if (response.containsKey('token')) {
+            dev.log('토큰 저장: ${response['token']}');
+            AuthToken().accessToken = response['token'];
+          } else {
+            dev.log('응답에 토큰이 없음: $response');
+          }
 
-          // ✅ 사용자 정보 조회 및 저장
+          // 사용자 정보 조회 및 저장
+          dev.log('사용자 정보 조회');
           final userInfo = await AuthService.getUserInfo();
+          dev.log('사용자 정보: $userInfo');
           AuthToken().userId = userInfo['id'];
 
           // 로그인 성공
           if (Navigator.canPop(context)) {
             Navigator.of(context).pop(); // 로딩 대화상자 닫기
           }
+          
+          dev.log('홈 화면으로 이동');
           Navigator.pushReplacementNamed(context, '/home');
         } catch (error) {
           dev.log('카카오 로그인 오류(Mobile): $error');
@@ -268,9 +320,19 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.of(context).pop(); // 로딩 대화상자 닫기
           }
 
+          // 오류 메시지 개선
+          String errorMessage = '카카오 로그인 중 오류가 발생했습니다';
+          if (error.toString().contains('cancelled') || error.toString().contains('취소')) {
+            errorMessage = '로그인이 취소되었습니다';
+          } else if (error.toString().contains('network') || error.toString().contains('네트워크')) {
+            errorMessage = '네트워크 연결을 확인해주세요';
+          } else if (error.toString().contains('token') || error.toString().contains('토큰')) {
+            errorMessage = '인증 정보를 처리하는 중 오류가 발생했습니다';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('카카오 로그인 오류: $error'),
+              content: Text(errorMessage),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 3),
             ),

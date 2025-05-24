@@ -76,32 +76,68 @@ class AuthService {
       'nickname': kakaoUser.kakaoAccount?.profile?.nickname ?? '',
     };
 
+    // 요청 정보 로깅
+    dev.log('🔄 [카카오 로그인] 요청 데이터: $body');
+    dev.log('🔄 [카카오 로그인] 카카오 ID: ${kakaoUser.id}');
+    dev.log('🔄 [카카오 로그인] 이메일: ${kakaoUser.kakaoAccount?.email}');
+    dev.log('🔄 [카카오 로그인] 닉네임: ${kakaoUser.kakaoAccount?.profile?.nickname}');
+
     try {
       final response = await ApiClient.post(endpoint, body);
+      dev.log('🔄 [카카오 로그인] 응답 코드: ${response.statusCode}');
+      dev.log('🔄 [카카오 로그인] 응답 본문: ${response.body}');
 
-      // ✅ 응답 로그 확인
-      final data = jsonDecode(response.body);
-      dev.log('🔁 [카카오 로그인] 응답 데이터: $data');
+      if (response.statusCode == 200) {
+        try {
+          final data = jsonDecode(response.body);
+          dev.log('🔄 [카카오 로그인] 응답 데이터: $data');
 
-      if (response.statusCode == 200 && data.containsKey('token')) {
-        AuthToken().accessToken = data['token'];
-        AuthToken().userId = data['userId'];
-        return {'success': true, 'token': data['token']};
+          if (data.containsKey('token')) {
+            // 토큰 저장 - AuthToken 클래스의 setter 사용
+            AuthToken().accessToken = data['token'];
+            AuthToken().userId = data['userId'] ?? 0;
+            return {'success': true, 'token': data['token']};
+          } else {
+            throw Exception('카카오 로그인 실패: 토큰 정보 없음');
+          }
+        } catch (parseError) {
+          dev.log('🔄 [카카오 로그인] JSON 파싱 오류: $parseError');
+          throw Exception('카카오 로그인 응답 처리 오류: $parseError');
+        }
       } else {
-        throw Exception('카카오 로그인 실패: 응답 형식 오류');
+        // 오류 메시지 추출 시도
+        String errorMessage = '카카오 로그인 실패: ${response.statusCode}';
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData.containsKey('message')) {
+            errorMessage = errorData['message'];
+          } else {
+            errorMessage = response.body;
+          }
+        } catch (e) {
+          // JSON 파싱 실패 시 원본 응답 사용
+          errorMessage = response.body;
+        }
+        throw Exception(errorMessage);
       }
     } catch (e) {
-      dev.log('카카오 로그인 오류: $e');
-      return {
-        'success': true,
-        'message': '오프라인 모드 - 카카오 로그인 성공',
-        'token': 'test_kakao_token_123',
-        'data': {
-          'id': kakaoUser.id.toString(),
-          'email': kakaoUser.kakaoAccount?.email ?? 'test@example.com',
-          'nickname': kakaoUser.kakaoAccount?.profile?.nickname ?? '테스트유저',
-        },
-      };
+      dev.log('🔄 [카카오 로그인] 오류: $e');
+      
+      // 디버그 모드에서만 테스트 토큰 반환 (실제 환경에서는 오류 전파)
+      bool isDebugMode = true; // 실제 환경에서는 false로 설정
+      
+      if (isDebugMode) {
+        dev.log('🔄 [카카오 로그인] 디버그 모드로 테스트 토큰 반환');
+        return {
+          'success': true,
+          'message': '테스트 모드 - 카카오 로그인 성공',
+          'token': 'test_kakao_token_123',
+          'userId': 999,
+        };
+      } else {
+        // 실제 환경에서는 오류 전파
+        throw e;
+      }
     }
   }
 
