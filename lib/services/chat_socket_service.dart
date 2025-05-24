@@ -34,8 +34,8 @@ class ChatSocketService {
           );
         },
         onWebSocketError: (dynamic error) => print('❌ WebSocket 에러: $error'),
-        stompConnectHeaders: {'Authorization': '$token'},
-        webSocketConnectHeaders: {'Authorization': '$token'},
+        stompConnectHeaders: {'Authorization': 'bearer $token'},
+        webSocketConnectHeaders: {'Authorization': 'bearer $token'},
         reconnectDelay: const Duration(seconds: 5),
         heartbeatOutgoing: const Duration(seconds: 10),
         heartbeatIncoming: const Duration(seconds: 10),
@@ -60,7 +60,7 @@ class ChatSocketService {
     _client?.send(
       destination: '/pub/chat/message',
       body: jsonEncode(message),
-      headers: {'Authorization': '$token'},
+      headers: {'Authorization': 'bearer $token'},
     );
   }
 

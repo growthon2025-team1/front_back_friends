@@ -48,7 +48,15 @@ class AuthService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         AuthToken().accessToken = '${data['token']}';
-        AuthToken().userId = data['userId'];
+
+        // ✅ 응답에 userId가 없을 경우 getUserInfo로 보완
+        if (data.containsKey('userId')) {
+          AuthToken().userId = data['userId'];
+        } else {
+          final userInfo = await getUserInfo();
+          AuthToken().userId = userInfo['id'];
+        }
+
         return {'success': true, 'token': data['token']};
       } else {
         throw Exception('로그인 실패: ${response.statusCode}');
@@ -76,7 +84,7 @@ class AuthService {
       if (response.statusCode == 200 &&
           data.containsKey('token') &&
           data['token'] != null) {
-        AuthToken().accessToken = 'Bearer ${data['token']}';
+        AuthToken().accessToken = '${data['token']}';
         AuthToken().userId = data['userId'];
         return {'success': true, 'token': data['token']};
       } else {
